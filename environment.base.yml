@@ -1,0 +1,11 @@
+name: livechat
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - fastapi
+  - uvicorn
+  - python
+  - starlette
+  - pydantic
+prefix: C:\Users\User\miniconda3\envs\livechat
