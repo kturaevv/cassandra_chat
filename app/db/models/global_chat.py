@@ -27,6 +27,7 @@ class message_info(UserType):
     text        = columns.Text(min_length=None, max_length=4096, required=True)
     reply_to    = columns.UUID()
     attachment  = columns.Text(min_length=1, max_length=4096) # metadata
+    read_status = columns.Boolean()
 
 # --- todo: separate UDTs later.
 
@@ -36,7 +37,7 @@ class GlobalChat(Model):
     Q: Get N latest messages in chat.
     """
     __keyspace__ = KEYSPACE
-    chat_id         = columns.UUID(partition_key=True)
+    origin_id         = columns.UUID(partition_key=True)
     date            = columns.Date(partition_key=True, required=True)
     time            = columns.TimeUUID(primary_key=True, clustering_order="DESC", required=True)
     msg_info        = columns.UserDefinedType(message_info)
@@ -48,28 +49,9 @@ class PrivateChat(Model):
     Q: Gen N last messages in user-user chat.
     """
     __keyspace__ = KEYSPACE
+    user_id         = columns.UUID(partition_key=True)
     chat_id         = columns.UUID(partition_key=True)
-    date            = columns.Date(partition_key=True, required=True)
+    origin_id       = columns.UUID(required=True)
     time            = columns.TimeUUID(primary_key=True, required=True, clustering_order="DESC")
+    date            = columns.Date(required=True)
     msg_info        = columns.UserDefinedType(message_info)
-    
-
-class UserConversations(Model):
-    """ User chats. 
-    
-    Q: Get related chats of specific <user> sorted by status?
-    """
-    __keyspace__ = KEYSPACE
-    user_id         = columns.UUID(primary_key=True)
-    chats           = columns.List(value_type=columns.UUID) # Note: collection types may lead to tombstone generation.
-    
-
-class ClientChats(Model):
-    """ Client chats. 
-
-    Q: Get all chats of <client> X.
-    """
-    __keyspace__ = KEYSPACE
-    client_id       = columns.UUID(primary_key=True)
-    chats           = columns.List(value_type=columns.UUID)
-    
