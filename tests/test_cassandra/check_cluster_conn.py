@@ -3,7 +3,7 @@ from uuid import uuid1
 from cassandra.cluster import Cluster
 
 
-def get_session(keyspace = None, address: str = 'localhost', port: int=9042):
+def get_session(keyspace=None, address: str = 'localhost', port: int=9042):
     cluster = Cluster([address],port=port, protocol_version=3)
     session = cluster.connect(keyspace)
     return session
