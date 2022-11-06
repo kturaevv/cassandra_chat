@@ -13,8 +13,8 @@ if __name__ == "__main__":
 
     import sys
     sys.path.append("../..")  # path lead to root dir to import module
-    from app.db.models import chat
+    from apps.chat.db import models
 
-    session = get_session(chat.KEYSPACE)
+    session = get_session(models.KEYSPACE)
     assert not session.is_shutdown
     print("Cassandra is UP!")
