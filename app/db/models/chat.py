@@ -17,8 +17,8 @@ KEYSPACE = 'messages'
 
 class basic_user_info(UserType):
     """ User information UDT. """
-    user_id     = columns.UUID()
-    username    = columns.Text(min_length=5, max_length=32, required=False)
+    user_id     = columns.BigInt()
+    username    = columns.Text(min_length=1, max_length=32, required=False)
 
 
 class message_info(UserType):
@@ -36,10 +36,10 @@ class GlobalChat(Model):
 
     Q: Get N latest messages in chat.
     """
-    __keyspace__ = KEYSPACE
-    origin_id         = columns.UUID(partition_key=True)
+    __keyspace__    = KEYSPACE
+    origin_id       = columns.Integer(partition_key=True)
     date            = columns.Date(partition_key=True, required=True)
-    time            = columns.TimeUUID(primary_key=True, clustering_order="DESC", required=True)
+    time            = columns.TimeUUID(primary_key=True, required=True, clustering_order="DESC")
     msg_info        = columns.UserDefinedType(message_info)
 
 
@@ -48,10 +48,10 @@ class PrivateChat(Model):
     
     Q: Gen N last messages in user-user chat.
     """
-    __keyspace__ = KEYSPACE
-    user_id         = columns.UUID(partition_key=True)
-    chat_id         = columns.UUID(partition_key=True)
-    origin_id       = columns.UUID(required=True)
+    __keyspace__    = KEYSPACE
+    origin_id       = columns.Integer(required=True)
+    user_id         = columns.BigInt(partition_key=True)
+    chat_id         = columns.BigInt(partition_key=True)
     time            = columns.TimeUUID(primary_key=True, required=True, clustering_order="DESC")
     date            = columns.Date(required=True)
     msg_info        = columns.UserDefinedType(message_info)

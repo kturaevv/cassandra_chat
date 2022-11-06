@@ -21,12 +21,13 @@ class MessageInfo(BaseModel):
     text: str
     reply_to: UUID
     attachment: str
-
+    read_status: bool
+    
 
 class OriginChat(BaseModel):
-    chat_id: UUID
-    date: date
-    time: UUID | None = None
+    origin_id: UUID
+    before_date: date | None = None
+    before_time: UUID | None = None
     # msg_info: MessageInfo 
 
 
@@ -34,17 +35,18 @@ class PrivateChat(BaseModel):
     user_id: UUID
     chat_id: UUID
     origin_id: UUID
-    date: date
+    before_date: date | None = None
+    before_time: UUID | None = None
 
 
-@app.get("/")
-async def read_global_messages(OriginChat):
+@app.get("/read/global")
+async def read_global_messages(body: OriginChat):
     ...
     
-@app.get("/")
-async def read_private_messages(PrivateChat):
+@app.get("/read/private")
+async def read_private_messages(body: PrivateChat):
     ...
 
-@app.post("/")
+@app.post("/send")
 async def send_message(MessageInfo):
     ...

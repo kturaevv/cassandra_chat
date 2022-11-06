@@ -11,7 +11,7 @@ from .check_cluster_conn import get_session
 import sys
 sys.path.append("../..")  # path lead to root dir to import module
 
-from app.db.models import global_chat
+from app.db.models import chat
 
 
 def init_database(session, keyspace):
@@ -26,16 +26,16 @@ def init_database(session, keyspace):
     set_default_connection(str(session))
 
     # apply ORM models to CQL - sync
-    sync_table(global_chat.GlobalChat)
-    sync_table(global_chat.PrivateChat)
+    sync_table(chat.GlobalChat)
+    sync_table(chat.PrivateChat)
 
 
 @pytest.fixture(scope='session', autouse=True)
 def session():
     """ Fixture to init and teardown Cassandra DB. """
-    session = get_session(global_chat.KEYSPACE)
+    session = get_session(chat.KEYSPACE)
     print("Initializing Cassandra.")
-    init_database(session, global_chat.KEYSPACE)
+    init_database(session, chat.KEYSPACE)
     yield session
     
 
