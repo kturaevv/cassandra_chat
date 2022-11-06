@@ -20,7 +20,7 @@ CREATE TYPE messages.message_info (
     read_status boolean
 );
 
-CREATE TABLE messages.global_chat (
+CREATE TABLE messages.origin (
     origin_id uuid,
     date date,
     time timeuuid,
@@ -28,11 +28,10 @@ CREATE TABLE messages.global_chat (
     PRIMARY KEY ((origin_id, date), time)
 ) WITH CLUSTERING ORDER BY (time DESC)
 
-CREATE TABLE messages.private_chat (
+CREATE TABLE messages.private (
     user_id uuid,
     chat_id uuid,
     time timeuuid,
-    date date,
     msg_info frozen<message_info>,
     origin_id uuid,
     PRIMARY KEY ((user_id, chat_id), time)

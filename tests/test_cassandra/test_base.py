@@ -2,16 +2,21 @@
 
 import pytest
 
+from cassandra import util
 from cassandra.cluster import Cluster
 from cassandra.cqlengine.management import sync_table
-from cassandra.cqlengine.connection import register_connection, set_default_connection
+from cassandra.cqlengine import connection
 
-from .check_cluster_conn import get_session
+from ...utils.check_connection import get_session
+
+from datetime import date
 
 import sys
 sys.path.append("../..")  # path lead to root dir to import module
 
 from apps.chat.db import models
+
+import datetime
 
 
 def init_database(session, keyspace):
@@ -22,12 +27,12 @@ def init_database(session, keyspace):
         """ % keyspace)
     session.execute(f"USE {keyspace}")
 
-    register_connection(str(session), session=session)
-    set_default_connection(str(session))
+    connection.register_connection(str(session), session=session)
+    connection.set_default_connection(str(session))
 
     # apply ORM models to CQL - sync
-    sync_table(models.GlobalChat)
-    sync_table(models.PrivateChat)
+    sync_table(models.Origin)
+    sync_table(models.Private)
 
 
 @pytest.fixture(scope='session', autouse=True)

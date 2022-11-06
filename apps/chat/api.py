@@ -1,6 +1,8 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
 from .schema import OriginChat, PrivateChat
+
+from cassandra.cqlengine.connection import session
 
 chat = APIRouter(
     prefix="/chat",
@@ -9,11 +11,11 @@ chat = APIRouter(
 
 
 @chat.get("/read/global")
-async def read_global_messages(body: OriginChat):
-    ...
+async def read_global_messages(params: OriginChat = Depends()):
+    ...    
     
 @chat.get("/read/private")
-async def read_private_messages(body: PrivateChat):
+async def read_private_messages(params: PrivateChat):
     ...
 
 @chat.post("/send")

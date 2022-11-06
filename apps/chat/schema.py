@@ -18,7 +18,7 @@ class MessageInfo(BaseModel):
 
 
 class OriginChat(BaseModel):
-    origin_id: UUID
+    origin_id: int
     before_date: date | None = None
     before_time: time | None = None
     # msg_info: MessageInfo 

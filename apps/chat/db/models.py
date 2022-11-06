@@ -14,44 +14,39 @@ from cassandra.cqlengine import columns
 
 KEYSPACE = 'messages'
 
-
-class basic_user_info(UserType):
-    """ User information UDT. """
-    user_id     = columns.BigInt()
-    username    = columns.Text(min_length=1, max_length=32, required=False)
-
-
 class message_info(UserType):
     """ Message information UDT. """
-    user        = columns.UserDefinedType(basic_user_info)
-    text        = columns.Text(min_length=None, max_length=4096, required=True)
-    reply_to    = columns.UUID()
-    attachment  = columns.Text(min_length=1, max_length=4096) # metadata
-    read_status = columns.Boolean()
+    reply_to    = columns.TimeUUID(default=None, required=False)
+    user_id     = columns.BigInt()
+    username    = columns.Text(min_length=1, max_length=32, required=False)
+    text        = columns.Text(min_length=1, max_length=4096, required=True)
+    attachment  = columns.Text(max_length=4096, default=None, required=False) # metadata
+    read_status = columns.Boolean(default=False)
 
 # --- todo: separate UDTs later.
 
-class GlobalChat(Model):
+class Origin(Model):
     """ Global chat data (any user). 
 
     Q: Get N latest messages in chat.
     """
+    __table_name__ = 'origin'
     __keyspace__    = KEYSPACE
     origin_id       = columns.Integer(partition_key=True)
     date            = columns.Date(partition_key=True, required=True)
-    time            = columns.TimeUUID(primary_key=True, required=True, clustering_order="DESC")
-    msg_info        = columns.UserDefinedType(message_info)
+    message_id      = columns.TimeUUID(primary_key=True, required=True, clustering_order="DESC")
+    message         = columns.UserDefinedType(message_info)
 
 
-class PrivateChat(Model):
+class Private(Model):
     """ User 1 - 1 chat data. 
     
     Q: Gen N last messages in user-user chat.
     """
+    __table_name__ = 'private'
     __keyspace__    = KEYSPACE
     origin_id       = columns.Integer(required=True)
     user_id         = columns.BigInt(partition_key=True)
     chat_id         = columns.BigInt(partition_key=True)
-    time            = columns.TimeUUID(primary_key=True, required=True, clustering_order="DESC")
-    date            = columns.Date(required=True)
-    msg_info        = columns.UserDefinedType(message_info)
+    message_id      = columns.TimeUUID(primary_key=True, required=True, clustering_order="DESC")
+    message         = columns.UserDefinedType(message_info)
