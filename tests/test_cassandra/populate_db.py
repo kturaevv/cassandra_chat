@@ -28,7 +28,7 @@ def populate_test_database():
             message_id = util.uuid_from_time(datetime.now()),
             message = models.message_info(**message)
         )
-        if i % 100: print("100 items created...")
+        if i % 100 == 0: print("100 items created...")
 
         
 if __name__ == "__main__":

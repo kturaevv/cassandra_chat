@@ -4,20 +4,20 @@ import pytest
 
 from cassandra import util
 from cassandra.cluster import Cluster
-from cassandra.cqlengine.management import sync_table
+from cassandra.cqlengine.management import sync_table, sync_type
 from cassandra.cqlengine import connection
-
-from ...utils.check_connection import get_session
 
 from datetime import date
 
 import sys
 sys.path.append("../..")  # path lead to root dir to import module
 
-from apps.chat.db import models
+from apps.chat.db import models, config
 
-import datetime
+from .check_connection import get_session
 
+
+settings = config.get_settings()
 
 def init_database(session, keyspace):
     session.execute(f"DROP KEYSPACE IF EXISTS {keyspace}")
@@ -38,9 +38,8 @@ def init_database(session, keyspace):
 @pytest.fixture(scope='session', autouse=True)
 def session():
     """ Fixture to init and teardown Cassandra DB. """
-    session = get_session(models.KEYSPACE)
-    print("Initializing Cassandra.")
-    init_database(session, models.KEYSPACE)
+    session = get_session(settings.keyspace)
+    init_database(session, settings.keyspace)
     yield session
     
 
