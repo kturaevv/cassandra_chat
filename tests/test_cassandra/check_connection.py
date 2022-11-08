@@ -36,17 +36,11 @@ if __name__ == "__main__":
         "username" : faker.user_name(),
         "text" : faker.text(),
     }
-    
-    models.Origin.create(
-        origin_id=random.randint(1,10), 
-        date=date.today(),
-        message_id=util.uuid_from_time(datetime.now()),
-        message = models.message_info(**message)
-    )
 
     models.Origin.create(
         origin_id=random.randint(1,10), 
-        date=date.today(),
+        year=2022,
+        month=12,
         message_id=util.uuid_from_time(datetime.now()),
         message = models.message_info(**message)
     )
@@ -59,16 +53,26 @@ if __name__ == "__main__":
         message = models.message_info(**message)
     )
     
+    print(obj, type(obj), 'hello', obj)
     assert models.Private(user_id=obj.user_id)    
     
     query = models.Origin.all().limit(5)
     
-    print(type(query))
+    print("Pagination.")
 
-    for i in query:
+    from cassandra.cqlengine import Token
+
+    
+    first_page = list(query)
+    last_item = first_page[-1]
+
+    for i in first_page:
         print(i)
 
-    print(session.execute("select * from origin limit 1")[0])
+    next_page = list(query.filter(pk__token__gt=Token(last_item.pk)))
+
+    for i in next_page:
+        print(i)
 
     print("Connection is OK")
     session.shutdown()

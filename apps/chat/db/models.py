@@ -32,8 +32,8 @@ class Origin(Model):
     __table_name__ = 'origin'
     __keyspace__    = settings.keyspace
     origin_id       = columns.Integer(partition_key=True, required=True)
-    year            = columns.Text(partition_key=True, required=True)
-    month           = columns.Text(partition_key=True, required=True)
+    year            = columns.Integer(partition_key=True, required=True)
+    month           = columns.Integer(partition_key=True, required=True)
     message_id      = columns.TimeUUID(primary_key=True, required=True, clustering_order="DESC")
     message         = columns.UserDefinedType(message_info)
 
