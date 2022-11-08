@@ -42,7 +42,7 @@ def cql_populate(session):
             VALUES (?, ?, ?, now(), ?)""")
 
     
-    for i in range(1000000):
+    for i in range(100000):
         message = {
             "user_id" : i,
             "username" : 'jon',
@@ -53,10 +53,32 @@ def cql_populate(session):
         session.execute_async(private_, [random.randint(1,10),random.randint(1, 10000),random.randint(1, 10000), models.message_info(**message)])
         if i % 100 == 0: print("100 items inserted...")
         
-        
+
+def cql_concurrent_populate(session):
+    from cassandra.concurrent import execute_concurrent_with_args
+
+    session.execute("USE messages")
+    
+    def message(i):
+        message = {
+                "user_id" : i,
+                "username" : 'jon',
+                "text" : f"{datetime.now()}",
+        }
+        return message
+
+    origin_ = session.prepare("""INSERT INTO origin (
+            origin_id, year, month, message_id, message)
+            VALUES (?, ?, ?, now(), ?)""")
+
+    params = [[random.randint(1,10), 2022, 11, models.message_info(**message(i))] for i in range(100000)]
+
+    execute_concurrent_with_args(session, origin_, params, concurrency=100)
+
+
 if __name__ == "__main__":
     from apps.chat.db import models
-    from .check_connection import get_session
+    from apps.chat.db.utils import get_cassandra_session
 
-    session = get_session()
-    cql_populate(session)
+    session = get_cassandra_session()
+    cql_concurrent_populate(session)

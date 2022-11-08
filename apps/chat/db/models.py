@@ -13,6 +13,7 @@ from .config import get_settings
 # STATIC data types associate a value to whole partition
 settings = get_settings()
 
+
 class message_info(UserType):
     """ Message information UDT. """
     reply_to    = columns.TimeUUID(default=None, required=False)

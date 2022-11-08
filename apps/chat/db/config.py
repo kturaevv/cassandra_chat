@@ -8,9 +8,11 @@ class Settings(BaseSettings):
     keyspace: str = Field(..., env="KEYSPACE")
     address: str = Field(..., env="ADDRESS")
 
-    cassandra_cluster: Cluster | None = None
-    cassandra_session: Session | None = None
+    cluster: Cluster | None = None
+    session: Session | None = None
 
+    fetch_size: int = 25
+    
     class Config:
         env_file = '.env'
 
