@@ -2,17 +2,18 @@ from fastapi import APIRouter, Depends
 from datetime import date
 
 from . import schema
-from .db import models, config
+from .db import models, config, methods
 
 settings = config.get_settings()
+cassandra_manager = methods.get_manager()
 
 chat = APIRouter(
     prefix="/chat",
-    tags=["Chat API"],
+    tags=["Chat API"]
 )
 
-@chat.get("/g", summary="Read messages from OG chat")
-async def read_global_messages(q: schema.OriginChat = Depends()):
+@chat.get("/global", summary="Read messages from OG chat")
+async def read_global_messages(params: schema.OriginChat = Depends()):
     """
     Read latest messages for specific website:
 
@@ -23,30 +24,44 @@ async def read_global_messages(q: schema.OriginChat = Depends()):
     This API will return certain amount of messages. So, in other words to get "older" messages, \
     provide the earliest message date and API will return N messages before this date.
     """
-    q = models.Origin.all().limit(5)
+    current_date = date.today()
+
+    q = models.Origin.filter(
+        origin_id=params.origin_id, 
+        year=current_date.year, 
+        month=current_date.month).limit(5)
     return list(q)
 
-@chat.get("/p", response_model=schema.MessageBase)
+@chat.get("/private")
 async def read_private_messages(params: schema.PrivateChat = Depends()):
     """
     Send message to private chat, i.e. 1 to 1 chat.
     """
+    q = models.Private.filter(
+        origin_id=params.origin_id,
+        user_id=params.user_id
+    ).limit(5)
+    return list(q)
 
-@chat.post("/send/g")
-async def send_message(body: schema.MessageOrigin):
+@chat.post("/send/global", status_code=201)
+async def send_global_messages(body: schema.MessageOrigin):
     """
-    Send message to Origin (Global) chat.
-    """
-    insert_origin = settings.session.prepare("""INSERT INTO origin (
-            origin_id, year, month, message_id, message)
-            VALUES (?, ?, ?, now(), ?)""")
-        
+    Send message to Origin (Global) chat:
 
-@chat.post("/send/g")
-async def send_message(body: schema.MessagePrivate):
+    - **origin_id**: Website's id
+    - **message**: Message info nested json
     """
-    Send message to Origin (Global) chat.
+    cassandra_manager.insert_async_origin(params = body)
+    return {"Success":200}
+
+@chat.post("/send/private", status_code=201)
+async def send_private_messages(body: schema.MessagePrivate):
     """
-    insert_origin = settings.session.prepare("""INSERT INTO private (
-            origin_id, user_id, chat_id, message_id, message) 
-            VALUES (?, ?, ?, now(), ?)""")
+    Send message to Origin (Global) chat:
+    
+    - **origin_id**: Website's id
+    - **chat_id**: Conversation id
+    - **message**: Message info nested json
+    """
+    cassandra_manager.insert_async_private(params = body)
+    return {"Success":200}

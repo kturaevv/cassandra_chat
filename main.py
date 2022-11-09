@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 
 from apps.chat.api import chat
-from apps.chat.db import config
+from apps.chat.db import config, methods
 
 from cassandra.cqlengine import connection
 from cassandra.cluster import Cluster
@@ -12,6 +12,7 @@ app = FastAPI()
 app.include_router(chat)
 
 settings = config.get_settings()
+cassandra_manager = methods.get_manager()
 
 @app.on_event('startup')
 def connect_db():
@@ -20,14 +21,15 @@ def connect_db():
     session = cluster.connect(settings.keyspace)
     connection.register_connection(str(session), session=session)
     connection.set_default_connection(str(session))
-    settings.cluster = cluster
-    settings.session = session
+    cassandra_manager.session = session
+    cassandra_manager.prep_statements()
+    
 
 @app.on_event('shutdown')
 def close_db_conn():
     print("Shutting down cassandra connections...")
-    settings.cluster.shutdown()
     settings.session.shutdown()
+    settings.cluster.shutdown()
     print("Graceful shutdown complete.")
 
 @app.get("/")

@@ -4,24 +4,29 @@ from uuid import UUID
 from datetime import date, time
 
 from pydantic import BaseModel
+from cassandra.util import uuid_from_time
 
-
-class MessageBase(BaseModel):
-    message_id: UUID
+class Message(BaseModel):
+    reply_to: UUID | None = None
     user_id: int | None = None
     username: str
     text: str
-    reply_to: UUID
-    attachment: str
+    attachment: str | None = None
     read_status: bool
 
 
-class MessageOrigin(MessageBase):
+class MessageOrigin(BaseModel):
     origin_id: int
+    year: int = date.today().year
+    month: int = date.today().month
+    message: Message
     
 
-class MessagePrivate(MessageBase):
+class MessagePrivate(BaseModel):
+    origin_id: int
+    user_id: int
     chat_id: int
+    message: Message
 
 
 class OriginChat(BaseModel):

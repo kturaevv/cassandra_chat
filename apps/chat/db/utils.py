@@ -22,9 +22,6 @@ def init_database(session, keyspace):
         """ % keyspace)
     session.execute(f"USE {keyspace}")
 
-    connection.register_connection(str(session), session=session)
-    connection.set_default_connection(str(session))
-
     # apply ORM models to CQL - sync
     sync_table(models.Origin)
     sync_table(models.Private)
