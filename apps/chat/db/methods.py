@@ -4,8 +4,24 @@ from cassandra.cluster import Session
 from .. import schema
 from datetime import date
 
+# TODO: add logger
 
-class CassandraManager:
+class SingletonMeta(type):
+    _instances = {}
+
+    def __call__(cls, *args, **kwargs):
+        """
+        Possible changes to the value of the `__init__` argument do not affect the returned instance.
+        """
+        if cls not in cls._instances:
+            instance = super().__call__(*args, **kwargs)
+            cls._instances[cls] = instance
+        return cls._instances[cls]
+
+
+class CassandraManager(metaclass=SingletonMeta):
+    """ There should be only 1 instance allowed, thus Singleton is used. """
+    
     query_insert_origin = """INSERT INTO origin (
             origin_id, year, month, message_id, message)
             VALUES (?, ?, ?, now(), ?)"""
@@ -18,7 +34,7 @@ class CassandraManager:
         self.session: Session = None
         self.statement_insert_origin = None
         self.statement_insert_private = None
-    
+
     def prep_statements(self):
         self.statement_insert_origin = self.session.prepare(self.query_insert_origin)
         self.statement_insert_private= self.session.prepare(self.query_insert_private)
@@ -64,7 +80,3 @@ class CassandraManager:
         #     future.start_fetching_next_page()
         #     future_res = future.result()
         ...
-
-@lru_cache
-def get_manager():
-    return CassandraManager()

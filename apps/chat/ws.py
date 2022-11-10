@@ -2,52 +2,6 @@ from fastapi.responses import HTMLResponse
 from fastapi import WebSocket, WebSocketDisconnect, Request, Response, APIRouter
 from . import schema
 
-
-html = """
-<!DOCTYPE html>
-<html>
-    <head>
-        <title>Chat</title>
-    </head>
-    <body>
-        <h1>WebSocket Chat</h1>
-        <h2>Your ID: <span id="ws-id"></span></h2>
-        <form action="" onsubmit="sendMessage(event)">
-
-            <label>Message: <input type="text" id="messageText" autocomplete="off"/></label>
-            <label>Chat ID: <input type="text" id="chatID" autocomplete="off" value="foo"/></label>
-            <button>Send</button>
-        
-        </form>
-        <ul id='messages'>
-        </ul>
-        <script>
-            var chatId = document.getElementById("chatID").value
-            var origin_id = Date.now()
-            
-            document.querySelector("#ws-id").textContent = origin_id;
-            
-            var ws = new WebSocket(`ws://localhost:8000/ws/ws/${origin_id}`);
-            
-            ws.onmessage = function(event) {
-                var messages = document.getElementById('messages')
-                var message = document.createElement('li')
-                var content = document.createTextNode(event.data)
-                message.appendChild(content)
-                messages.appendChild(message)
-            };
-            
-            function sendMessage(event) {
-                var input = document.getElementById("messageText")
-                ws.send(input.value)
-                input.value = ''
-                event.preventDefault()
-            }
-        </script>
-    </body>
-</html>
-"""
-
 ws_router = APIRouter(
     prefix="/ws",
     tags=["Chat API WebSocket"]

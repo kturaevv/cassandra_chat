@@ -2,10 +2,12 @@ from fastapi import APIRouter, Depends
 from datetime import date
 
 from . import schema
-from .db import models, config, methods
+from .db import models, config
+from .db.methods import CassandraManager
+
+from fastapi import Request
 
 settings = config.get_settings()
-cassandra_manager = methods.get_manager()
 
 chat = APIRouter(
     prefix="/chat",
@@ -13,7 +15,7 @@ chat = APIRouter(
 )
 
 @chat.get("/global", summary="Read messages from OG chat")
-async def read_global_messages(params: schema.OriginChat = Depends()):
+async def read_global_messages(r: Request, params: schema.OriginChat = Depends()):
     """
     Read latest messages for specific website:
 
@@ -51,7 +53,7 @@ async def send_global_messages(body: schema.MessageOrigin):
     - **origin_id**: Website's id
     - **message**: Message info nested json
     """
-    cassandra_manager.insert_async_origin(params = body)
+    CassandraManager.insert_async_origin(params = body)
     return {"Success":200}
 
 @chat.post("/send/private", status_code=201)
@@ -63,5 +65,5 @@ async def send_private_messages(body: schema.MessagePrivate):
     - **chat_id**: Conversation id
     - **message**: Message info nested json
     """
-    cassandra_manager.insert_async_private(params = body)
+    CassandraManager.insert_async_private(params = body)
     return {"Success":200}
