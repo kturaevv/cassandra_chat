@@ -3,8 +3,8 @@
 import sys, random, pytest
 sys.path.append("../..")  # path lead to root dir to import module
 
-from apps.chat.db import models, config
-from apps.chat.db.utils import get_cassandra_session
+from app.db import models, config
+from app.db.utils import get_cassandra_session
 
 from datetime import datetime
 from faker import Faker

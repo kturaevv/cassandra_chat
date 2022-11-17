@@ -77,8 +77,8 @@ def cql_concurrent_populate(session):
 
 
 if __name__ == "__main__":
-    from apps.chat.db import models
-    from apps.chat.db.utils import get_cassandra_session
+    from app.db import models
+    from app.db.utils import get_cassandra_session
 
     session = get_cassandra_session()
     cql_concurrent_populate(session)

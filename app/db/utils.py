@@ -6,7 +6,7 @@ from cassandra.cqlengine.management import sync_table
 
 from datetime import datetime, date
 
-from apps.chat.db import models
+from app.db import models
 
 def get_cassandra_session(keyspace=None, address: str = 'localhost', port: int=9042):
     cluster = Cluster([address],port=port, protocol_version=3)

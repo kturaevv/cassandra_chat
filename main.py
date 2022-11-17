@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 
-from apps.chat.api import chat
-from apps.chat.ws import ws_router
-from apps.chat.db import config, methods
+from app.api import chat
+from app.ws import ws_router
+from app.db import config, methods
 
 from cassandra.cqlengine import connection
 from cassandra.cluster import Cluster
