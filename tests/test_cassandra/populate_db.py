@@ -78,7 +78,7 @@ def cql_concurrent_populate(session):
 
 if __name__ == "__main__":
     from app.db import models
-    from app.db.utils import get_cassandra_session
+    from app.db.manager import ConnManager
 
-    session = get_cassandra_session()
+    session = ConnManager().session
     cql_concurrent_populate(session)

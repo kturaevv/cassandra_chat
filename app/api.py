@@ -3,7 +3,7 @@ from datetime import date
 
 from . import schema
 from .db import models, config
-from .db.methods import CassandraManager
+from .db.methods import CRUD
 
 from fastapi import Request
 
@@ -53,7 +53,7 @@ async def send_global_messages(body: schema.MessageOrigin):
     - **origin_id**: Website's id
     - **message**: Message info nested json
     """
-    CassandraManager.insert_async_origin(params = body)
+    CRUD.insert_async_origin(params = body)
     return {"Success":200}
 
 @chat.post("/send/private", status_code=201)
@@ -65,5 +65,5 @@ async def send_private_messages(body: schema.MessagePrivate):
     - **chat_id**: Conversation id
     - **message**: Message info nested json
     """
-    CassandraManager.insert_async_private(params = body)
+    CRUD.insert_async_private(params = body)
     return {"Success":200}

@@ -4,17 +4,13 @@ from app.api import chat
 from app.ws import ws_router
 from app.db import config, methods
 
-from cassandra.cqlengine import connection
-from cassandra.cluster import Cluster
-from cassandra.policies import DCAwareRoundRobinPolicy
-
 app = FastAPI()
 
 app.include_router(chat)
 app.include_router(ws_router)
 
 settings = config.get_settings()
-cassandra_manager = methods.CassandraManager()
+
 
 @app.on_event('startup')
 def connect_db():

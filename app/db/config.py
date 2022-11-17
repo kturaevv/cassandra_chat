@@ -5,8 +5,9 @@ from cassandra.cluster import Cluster
 from cassandra.cluster import Session
 
 class Settings(BaseSettings):
-    keyspace: str = Field(..., env="KEYSPACE")
-    address: str = Field(..., env="ADDRESS")
+    keyspace: str = Field(..., env="CASSANDRA_KEYSPACE")
+    address: str = Field(..., env="CASSANDRA_ADDRESS")
+    port: str = Field(..., env="CASSANDRA_PORT")
     fetch_size: int = 25
     
     class Config:

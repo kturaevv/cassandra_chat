@@ -1,25 +1,15 @@
 from functools import lru_cache
 from cassandra.cluster import Session
+from datetime import date
 
 from .. import schema
-from datetime import date
+
+from .manager import ConnManager
 
 # TODO: add logger
 
-class SingletonMeta(type):
-    _instances = {}
 
-    def __call__(cls, *args, **kwargs):
-        """
-        Possible changes to the value of the `__init__` argument do not affect the returned instance.
-        """
-        if cls not in cls._instances:
-            instance = super().__call__(*args, **kwargs)
-            cls._instances[cls] = instance
-        return cls._instances[cls]
-
-
-class CassandraManager(metaclass=SingletonMeta):
+class CRUD:
     """ There should be only 1 instance allowed, thus Singleton is used. """
     
     query_insert_origin = """INSERT INTO origin (
@@ -31,7 +21,7 @@ class CassandraManager(metaclass=SingletonMeta):
             VALUES (?, ?, ?, now(), ?)"""
 
     def __init__(self) -> None:
-        self.session: Session = None
+        self.session: Session = ConnManager().session
         self.statement_insert_origin = None
         self.statement_insert_private = None
 

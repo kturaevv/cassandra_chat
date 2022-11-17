@@ -4,7 +4,7 @@ import sys, random, pytest
 sys.path.append("../..")  # path lead to root dir to import module
 
 from app.db import models, config
-from app.db.utils import get_cassandra_session
+from app.db.manager import ConnManager
 
 from datetime import datetime
 from faker import Faker
@@ -18,7 +18,7 @@ settings = config.get_settings()
 @pytest.fixture(scope='session', autouse=True)
 def session():
     """ Fixture to init and teardown Cassandra DB. """
-    session = get_cassandra_session(settings.keyspace)
+    session = ConnManager().session
     yield session
     session.shutdown()
 
