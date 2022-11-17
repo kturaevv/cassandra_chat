@@ -24,8 +24,9 @@ class CRUD:
         self.session: Session = ConnManager().session
         self.statement_insert_origin = None
         self.statement_insert_private = None
+        self._prep_statements()
 
-    def prep_statements(self):
+    def _prep_statements(self):
         self.statement_insert_origin = self.session.prepare(self.query_insert_origin)
         self.statement_insert_private= self.session.prepare(self.query_insert_private)
 

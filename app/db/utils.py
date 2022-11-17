@@ -20,14 +20,7 @@ class SingletonMeta(type):
             instance = super().__call__(*args, **kwargs)
             cls._instances[cls] = instance
         return cls._instances[cls]
-
-
-def get_cassandra_session(keyspace=None, address: str = 'localhost', port: int=9042):
-    cluster = Cluster([address],port=port, protocol_version=3)
-    session = cluster.connect(keyspace)
-    connection.register_connection(str(session), session=session)
-    connection.set_default_connection(str(session))
-    return session
+        
 
 def init_database(session, keyspace):
     session.execute("""

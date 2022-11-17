@@ -2,7 +2,7 @@ from fastapi import FastAPI
 
 from app.api import chat
 from app.ws import ws_router
-from app.db import config, methods
+from app.db import config, methods, manager
 
 app = FastAPI()
 
@@ -14,14 +14,8 @@ settings = config.get_settings()
 
 @app.on_event('startup')
 def connect_db():
-    address = settings.address.split(':')
-    cluster = Cluster([address[0]], port=address[1], protocol_version=3, load_balancing_policy=DCAwareRoundRobinPolicy())
-    session = cluster.connect(settings.keyspace)
-    connection.register_connection(str(session), session=session)
-    connection.set_default_connection(str(session))
-    cassandra_manager.session = session
-    cassandra_manager.prep_statements()
-    
+    manager.ConnManager(settings.keyspace)
+
 
 @app.on_event('shutdown')
 def close_db_conn():

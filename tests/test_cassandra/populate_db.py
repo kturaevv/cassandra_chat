@@ -19,7 +19,7 @@ def orm_populate():
             year='2022',
             month=11,
             message_id=util.uuid_from_time(datetime.now()),
-            message = models.message_info(**message)
+            message = models.message_info_udt(**message)
         )
 
         models.Private.create(
@@ -27,12 +27,10 @@ def orm_populate():
             user_id = random.randint(1, 10000),
             chat_id = random.randint(1, 10000),
             message_id = util.uuid_from_time(datetime.now()),
-            message = models.message_info(**message)
+            message = models.message_info_udt(**message)
         )
 
 def cql_populate(session):
-    session.execute("USE messages")
-
     origin_ = session.prepare("""INSERT INTO origin (
             origin_id, year, month, message_id, message)
             VALUES (?, ?, ?, now(), ?)""")
@@ -49,15 +47,13 @@ def cql_populate(session):
             "text" : f"{datetime.now()}",
         }
 
-        session.execute_async(origin_, [random.randint(1,10), 2022, 11, models.message_info(**message)])
-        session.execute_async(private_, [random.randint(1,10),random.randint(1, 10000),random.randint(1, 10000), models.message_info(**message)])
+        session.execute_async(origin_, [random.randint(1,10), 2022, 11, models.message_info_udt(**message)])
+        session.execute_async(private_, [random.randint(1,10),random.randint(1, 10000),random.randint(1, 10000), models.message_info_udt(**message)])
         if i % 100 == 0: print("100 items inserted...")
         
 
 def cql_concurrent_populate(session):
     from cassandra.concurrent import execute_concurrent_with_args
-
-    session.execute("USE messages")
     
     def message(i):
         message = {
@@ -71,7 +67,7 @@ def cql_concurrent_populate(session):
             origin_id, year, month, message_id, message)
             VALUES (?, ?, ?, now(), ?)""")
 
-    params = [[random.randint(1,10), 2022, 11, models.message_info(**message(i))] for i in range(100000)]
+    params = [[random.randint(1,10), 2022, 11, models.message_info_udt(**message(i))] for i in range(100000)]
 
     execute_concurrent_with_args(session, origin_, params, concurrency=100)
 

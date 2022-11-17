@@ -14,7 +14,7 @@ from .config import get_settings
 settings = get_settings()
 
 
-class message_info(UserType):
+class message_info_udt(UserType):
     """ Message information UDT. """
     reply_to    = columns.TimeUUID(default=None, required=False)
     user_id     = columns.BigInt()
@@ -36,7 +36,7 @@ class Origin(Model):
     year            = columns.Integer(partition_key=True, required=True)
     month           = columns.Integer(partition_key=True, required=True)
     message_id      = columns.TimeUUID(primary_key=True, required=True, clustering_order="DESC")
-    message         = columns.UserDefinedType(message_info)
+    message         = columns.UserDefinedType(message_info_udt)
 
 
 class Private(Model):
@@ -50,4 +50,4 @@ class Private(Model):
     user_id         = columns.BigInt(partition_key=True)
     chat_id         = columns.BigInt()
     message_id      = columns.TimeUUID(primary_key=True, required=True, clustering_order="DESC")
-    message         = columns.UserDefinedType(message_info)
+    message         = columns.UserDefinedType(message_info_udt)
