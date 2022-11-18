@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     keyspace: str = Field(..., env="CASSANDRA_KEYSPACE")
     address: str = Field(..., env="CASSANDRA_ADDRESS")
     port: str = Field(..., env="CASSANDRA_PORT")
-    fetch_size: int = 25
+    fetch_size: int = 50
     
     class Config:
         env_file = '.env'

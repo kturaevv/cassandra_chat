@@ -2,7 +2,7 @@ from fastapi import FastAPI
 
 from app.api import chat
 from app.ws import ws_router
-from app.db import config, methods, manager
+from app.db import config, crud, manager
 
 app = FastAPI()
 

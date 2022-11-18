@@ -39,10 +39,6 @@ def orm_populate(n = None):
             message = models.message_info_udt(**message)
         )
 
-def h(*args):
-    import time
-    print(*args)
-    time.sleep(5)
 
 class QueryManager:
     
@@ -88,20 +84,20 @@ class QueryManager:
         return list(itertools.chain(*results))
     
     @staticmethod
-    def fake_origin_data():
+    def fake_origin_data(i = None):
         return [
             random.randint(1,10), 
             2022, 
             11, 
-            models.message_info_udt(**QueryManager.fake_message_udt_data())]
+            models.message_info_udt(**QueryManager.fake_message_udt_data(i))]
 
     @staticmethod
-    def fake_private_data():
+    def fake_private_data(i = None):
         return [
             random.randint(1,10), 
             random.randint(1, 10000), 
             random.randint(1, 10000), 
-            models.message_info_udt(**QueryManager.fake_message_udt_data())]
+            models.message_info_udt(**QueryManager.fake_message_udt_data(i))]
 
     @staticmethod        
     def fake_message_udt_data(i = None):
@@ -130,9 +126,12 @@ class InsertPrivate(QueryManager):
 if __name__ == "__main__":
     PROCESSES = multiprocessing.cpu_count() - 1
 
-    params = QueryManager.fake_private_data()
+    params = [QueryManager.fake_private_data(i) for i in range(100)]
     
     p = InsertPrivate(process_count=PROCESSES)
+    p.get_results(params)
+    p.close_pool()
 
-    p.get_concurrent_results(params)
+    p = InsertOrigin(process_count=PROCESSES)
+    p.get_results(params)
     p.close_pool()

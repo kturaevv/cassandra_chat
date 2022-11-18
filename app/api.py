@@ -3,7 +3,7 @@ from datetime import date
 
 from . import schema
 from .db import models, config
-from .db.methods import CRUD
+from .db.crud import CRUD
 
 from fastapi import Request
 
@@ -16,7 +16,7 @@ chat = APIRouter(
 )
 
 @chat.get("/global", summary="Read messages from OG chat")
-async def read_global_messages(r: Request, params: schema.OriginChat = Depends()):
+async def read_global_messages(r: Request, params: schema.QueryOrigin = Depends()):
     """
     Read latest messages for specific website:
 
@@ -36,7 +36,7 @@ async def read_global_messages(r: Request, params: schema.OriginChat = Depends()
     return list(q)
 
 @chat.get("/private")
-async def read_private_messages(params: schema.PrivateChat = Depends()):
+async def read_private_messages(params: schema.QueryPrivate = Depends()):
     """
     Send message to private chat, i.e. 1 to 1 chat.
     """

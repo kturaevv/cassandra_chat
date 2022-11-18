@@ -1,5 +1,5 @@
 from functools import lru_cache
-from cassandra.cluster import Session
+from cassandra.cluster import Session, ResultSet
 from cassandra.query import SimpleStatement
 from datetime import date
 
@@ -58,12 +58,34 @@ class CRUD:
             )
         return future
 
-    def get_origin_messages(self):
-        q = "SELECT * FROM %s" % models.Private.__table_name__
-        statement = SimpleStatement(q, fetch_size=settings.fetch_size)
-        r = self.session.execute(statement)
-        print(r)
+    def get_origin_messages(self) -> ResultSet:
+        d, paging_state = self.__select_from(model=models.Origin)
+        
+        # Validate with Pydantic
+        data = []
+        for i in d:
+            data.append(schema.MessageOrigin(**i).json())
+        return data, paging_state
 
+    def get_private_messages(self) -> ResultSet:
+        d, paging_state = self.__select_from(model=models.Private)
+
+        # Validate with Pydantic
+        data = []
+        for i in d:
+            data.append(schema.MessagePrivate(**i).json())
+        return data, paging_state
+
+    def __select_from(self, model: models, paging_state = None) -> ResultSet:
+        # .current_rows
+        # .has_more_pages
+        # .fetch_next_page()
+        # .paging_state
+        # avoid calling list(ResultSet) -> will return whole query
+        q = "SELECT * FROM %s" % model.__table_name__
+        statement = SimpleStatement(q, fetch_size=5)
+        result = self.session.execute(statement, paging_state=paging_state)
+        return result.current_rows, result.paging_state
 
     def __query_on_success(self):
         ...
@@ -82,6 +104,3 @@ class CRUD:
         #     future.start_fetching_next_page()
         #     future_res = future.result()
         ...
-
-c = CRUD()
-c.get_origin_messages()
