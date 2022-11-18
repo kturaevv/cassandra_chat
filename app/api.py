@@ -8,6 +8,7 @@ from .db.methods import CRUD
 from fastapi import Request
 
 settings = config.get_settings()
+crud = CRUD()
 
 chat = APIRouter(
     prefix="/chat",
@@ -53,7 +54,7 @@ async def send_global_messages(body: schema.MessageOrigin):
     - **origin_id**: Website's id
     - **message**: Message info nested json
     """
-    CRUD.insert_async_origin(params = body)
+    crud.insert_async_origin(params = body)
     return {"Success":200}
 
 @chat.post("/send/private", status_code=201)
@@ -65,5 +66,5 @@ async def send_private_messages(body: schema.MessagePrivate):
     - **chat_id**: Conversation id
     - **message**: Message info nested json
     """
-    CRUD.insert_async_private(params = body)
+    crud.insert_async_private(params = body)
     return {"Success":200}

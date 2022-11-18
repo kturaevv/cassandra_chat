@@ -16,7 +16,7 @@ settings = config.get_settings()
 class ConnManager(metaclass=SingletonMeta):
     """ Cassandra connection management class. """
 
-    def __init__(self, keyspace = None) -> None:
+    def __init__(self, keyspace = settings.keyspace) -> None:
         self.cluster = None
         self.session = None
         

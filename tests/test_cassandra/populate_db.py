@@ -1,13 +1,22 @@
 from cassandra import util
+from cassandra.concurrent import execute_concurrent_with_args
+
 from datetime import datetime, date
 from faker import Faker
 
+import multiprocessing
 import random
+
+from app.db import models
+
+from app.db.manager import ConnManager
+
+import itertools
 
 faker = Faker()
 
-def orm_populate():
-    for i in range(1000):
+def orm_populate(n = None):
+    for i in range(n):
         message = {
             "user_id" : i,
             "username" : faker.user_name(),
@@ -30,51 +39,100 @@ def orm_populate():
             message = models.message_info_udt(**message)
         )
 
-def cql_populate(session):
-    origin_ = session.prepare("""INSERT INTO origin (
-            origin_id, year, month, message_id, message)
-            VALUES (?, ?, ?, now(), ?)""")
-    
-    private_ = session.prepare("""INSERT INTO private (
-            origin_id, user_id, chat_id, message_id, message) 
-            VALUES (?, ?, ?, now(), ?)""")
+def h(*args):
+    import time
+    print(*args)
+    time.sleep(5)
 
+class QueryManager:
     
-    for i in range(100000):
-        message = {
-            "user_id" : i,
-            "username" : 'jon',
-            "text" : f"{datetime.now()}",
-        }
+    prepared = None
+    concurrency = 100
+    batch_size = 10
 
-        session.execute_async(origin_, [random.randint(1,10), 2022, 11, models.message_info_udt(**message)])
-        session.execute_async(private_, [random.randint(1,10),random.randint(1, 10000),random.randint(1, 10000), models.message_info_udt(**message)])
-        if i % 100 == 0: print("100 items inserted...")
-        
+    def __init__(self, process_count):
+        self.pool = multiprocessing.Pool(
+            processes=process_count,
+            initializer=self._setup
+        )
 
-def cql_concurrent_populate(session):
-    from cassandra.concurrent import execute_concurrent_with_args
+    @classmethod
+    def _setup(cls):
+        cls.session = ConnManager().session
+        cls.prepared = cls.session.prepare(cls.prepared)
+
+    @classmethod
+    def _execute_request(cls, params):
+        print(params)
+        return cls.session.execute(cls.prepared, params)
+
+    @classmethod
+    def _execute_concurrent(cls, params):
+        print("A batch of ", len(params), " inserted")
+        return [list(results[1]) for results in execute_concurrent_with_args(cls.session, cls.prepared, params)]
+
+    def close_pool(self):
+        self.pool.close()
+        self.pool.join()
     
-    def message(i):
+    def get_results(self, params):
+        results = self.pool.imap(self._execute_request, params, self.batch_size)
+        return results
+
+    def get_concurrent_results(self, params):
+        params = list(params)
+        results = self.pool.imap(
+            self._execute_concurrent,
+            (params[n:n+self.concurrency] for n in range(0, len(params), self.concurrency))
+        )
+        return list(itertools.chain(*results))
+    
+    @staticmethod
+    def fake_origin_data():
+        return [
+            random.randint(1,10), 
+            2022, 
+            11, 
+            models.message_info_udt(**QueryManager.fake_message_udt_data())]
+
+    @staticmethod
+    def fake_private_data():
+        return [
+            random.randint(1,10), 
+            random.randint(1, 10000), 
+            random.randint(1, 10000), 
+            models.message_info_udt(**QueryManager.fake_message_udt_data())]
+
+    @staticmethod        
+    def fake_message_udt_data(i = None):
+        i = random.randint(0, 1000) if i is None else i
+
         message = {
                 "user_id" : i,
-                "username" : 'jon',
+                "username" : faker.name(),
                 "text" : f"{datetime.now()}",
         }
         return message
 
-    origin_ = session.prepare("""INSERT INTO origin (
+class InsertOrigin(QueryManager):
+
+    prepared = """INSERT INTO origin (
             origin_id, year, month, message_id, message)
-            VALUES (?, ?, ?, now(), ?)""")
+            VALUES (?, ?, ?, now(), ?)"""
 
-    params = [[random.randint(1,10), 2022, 11, models.message_info_udt(**message(i))] for i in range(100000)]
+class InsertPrivate(QueryManager):
 
-    execute_concurrent_with_args(session, origin_, params, concurrency=100)
+    prepared = """INSERT INTO private (
+            origin_id, user_id, chat_id, message_id, message) 
+            VALUES (?, ?, ?, now(), ?)"""
 
 
 if __name__ == "__main__":
-    from app.db import models
-    from app.db.manager import ConnManager
+    PROCESSES = multiprocessing.cpu_count() - 1
 
-    session = ConnManager().session
-    cql_concurrent_populate(session)
+    params = QueryManager.fake_private_data()
+    
+    p = InsertPrivate(process_count=PROCESSES)
+
+    p.get_concurrent_results(params)
+    p.close_pool()

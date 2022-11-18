@@ -1,12 +1,16 @@
 from functools import lru_cache
 from cassandra.cluster import Session
+from cassandra.query import SimpleStatement
 from datetime import date
 
 from .. import schema
 
+from . import models, config
+
 from .manager import ConnManager
 
 # TODO: add logger
+settings = config.get_settings()
 
 
 class CRUD:
@@ -54,6 +58,13 @@ class CRUD:
             )
         return future
 
+    def get_origin_messages(self):
+        q = "SELECT * FROM %s" % models.Private.__table_name__
+        statement = SimpleStatement(q, fetch_size=settings.fetch_size)
+        r = self.session.execute(statement)
+        print(r)
+
+
     def __query_on_success(self):
         ...
 
@@ -71,3 +82,6 @@ class CRUD:
         #     future.start_fetching_next_page()
         #     future_res = future.result()
         ...
+
+c = CRUD()
+c.get_origin_messages()
